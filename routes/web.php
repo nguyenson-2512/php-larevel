@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use App\User;
 use App\Post;
 
@@ -16,16 +18,24 @@ use App\Post;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    // return view('welcome');
+    //Auth::logout();
+    $user = Auth::user();
+    $right = Hash::check('123', $user->password);
+    dd($right);
+
+    // dd($user->name);
+    // return view('testBlade');
 });
 
 Route::get('/test', function () {
-    $student = [
-        ['name' => 'son', 'id' => 1],
-        ['name' => 'nguyen', 'id' => 2]
-    ];
-    return view('about.gift', ['student' => $student]);
-});
+    // $student = [
+    //     ['name' => 'son', 'id' => 1],
+    //     ['name' => 'nguyen', 'id' => 2]
+    // ];
+    // return view('about.gift', ['student' => $student]);
+    return '123';
+})->middleware('myJWT');
 
 Route::post('/gift', function () {
     csrf_token();
@@ -37,11 +47,37 @@ Route::get('/json', function () {
     // return response()->json([
     //     'users' => $users
     // ]);
-    $users = User::query()->where('id',1)->get();
-    return response()->json([
+
+    //$users = User::query()->where('id',1)->get();
+    // return response()->json([
+    //     'users' => $users
+    // ]);
+
+    // $users = User::select('name','email','password')->where('id',2)->where('id',1)
+    //             ->first();
+    // return response()->json([
+    //     'users' => $users
+    // ]);
+
+    $users = User::select('name','email','id')->orderBy('id','desc')->take(1)->get();
+    $users = User::select('name','email','id')->paginate(1);
+    // phan trang truy cap bang cach nhap tren url ?page=2
+        return response()->json([
         'users' => $users
     ]);
 });
+// Route::get('/users', function () {
+//     $users = User::select('name','email','id')->paginate(1);
+//     return view('users',['users'=>$users]);
+// });
+Route::get('/users/{id}', 'UsersController@index');
+Route::get('/users/{id}', 'UsersController@show')->where(['id' => '\d+']);
+Route::view('/users/new', 'users.new');
+Route::post('users/create', 'UsersController@create');
+Route::view('/login','login')->name('login');
+Route::post('/login','AuthController@login');
+
+//chay ham index trong http/controller
 
 // Route::prefix('admin')->group(function () {
 //     Route::get('users', function () {
